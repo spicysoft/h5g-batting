@@ -10,8 +10,8 @@
             "b": 11529691696998849524
         }, {
             "$type": "Unity.Tiny.Core2D.DisplayInfo, Unity.Tiny.Core2D",
-            "width": 1280,
-            "height": 720,
+            "width": 540,
+            "height": 960,
             "autoSizeToFrame": true,
             "orientation": 0,
             "renderMode": 0
@@ -28,6 +28,13 @@
                 "SceneReference": {
                     "SceneGuid": "31cca1c9e24b4bd7adecbb12b71bc184"
                 }
+            }]
+        }, {
+            "$type": "Unity.Authoring.Core.ComponentOrder, Unity.Authoring.Core",
+            "Elements": [{
+                "StableTypeHash": 7960064150805274675
+            }, {
+                "StableTypeHash": 12662904853204722592
             }]
         }, {
             "$type": "Unity.Authoring.Core.ConfigurationTag, Unity.Authoring.Core"
