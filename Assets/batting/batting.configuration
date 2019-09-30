@@ -5,6 +5,20 @@
     "AssetReferences": [],
     "Entities": [{
         "Components": [{
+            "$type": "Batting.GameConfig, batting",
+            "TitleScn": {
+                "SceneGuid": "ba26c15d922c431fadc23d0182349f12"
+            },
+            "MainScn": {
+                "SceneGuid": "31cca1c9e24b4bd7adecbb12b71bc184"
+            },
+            "GameOverScn": {
+                "SceneGuid": "00000000000000000000000000000000"
+            },
+            "ResultScn": {
+                "SceneGuid": "00000000000000000000000000000000"
+            }
+        }, {
             "$type": "Unity.Entities.EntityGuid, Unity.Entities",
             "a": 9115861952475710709,
             "b": 11529691696998849524
@@ -21,12 +35,16 @@
                 "SceneReference": {
                     "SceneGuid": "31cca1c9e24b4bd7adecbb12b71bc184"
                 }
+            }, {
+                "SceneReference": {
+                    "SceneGuid": "ba26c15d922c431fadc23d0182349f12"
+                }
             }]
         }, {
             "$type": "Unity.Tiny.Scenes.StartupScenes, Unity.Tiny.Scenes",
             "Elements": [{
                 "SceneReference": {
-                    "SceneGuid": "31cca1c9e24b4bd7adecbb12b71bc184"
+                    "SceneGuid": "ba26c15d922c431fadc23d0182349f12"
                 }
             }]
         }, {
@@ -35,6 +53,8 @@
                 "StableTypeHash": 7960064150805274675
             }, {
                 "StableTypeHash": 12662904853204722592
+            }, {
+                "StableTypeHash": 6610784938584536859
             }]
         }, {
             "$type": "Unity.Authoring.Core.ConfigurationTag, Unity.Authoring.Core"

@@ -6,5 +6,6 @@ namespace Batting
 	{
 		public bool Initialized;
 		public int Status;
+		public float Timer;
 	}
 }
