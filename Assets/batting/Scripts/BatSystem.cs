@@ -28,9 +28,9 @@ namespace Batting
 				if( !bat.Initialized ) {
 					bat.Initialized = true;
 					bat.Status = StWait;
-					bat.ZAng = math.radians( 200f );
+					bat.Zrad = math.radians( 210f );
 					bat.Timer = 0;
-					rotation.Value = quaternion.RotateZ( bat.ZAng );
+					rotation.Value = quaternion.RotateZ( bat.Zrad );
 					return;
 				}
 
@@ -45,10 +45,12 @@ namespace Batting
 					break;
 				case StSwing:
 					quaternion rot = rotation.Value;
-					float za = bat.ZAng;
-					float aspd = math.radians( 1200f ) * dt;
+					float za = bat.Zrad;
+					bat.PreZrad = za;
+					//float aspd = math.radians( 1200f ) * dt;
+					float aspd = math.radians( 800f ) * dt;
 					za += aspd;
-					bat.ZAng = za;
+					bat.Zrad = za;
 					rotation.Value = quaternion.RotateZ( za );
 					if( za > math.radians(520f) ) {
 						bat.Status = StEnd;
