@@ -22,6 +22,8 @@ namespace Batting
 					ball.Timer = 0;
 					trans.Value = new float3( 0, 100f, 0 );
 					scl.Value = new float3( 1f, 1f, 1f );
+					ball.Dir = new float3( 0, -1f, 0 );
+					ball.Speed = 600f;
 					return;
 				}
 
@@ -38,13 +40,17 @@ namespace Batting
 				case StMove:
 					var prePos = trans.Value;
 					var pos = prePos;
-					//float spd = -400f * dt;
-					float spd = -400f * dt;
-					pos.y += spd;
 
-					if( checkColli( prePos, pos ) ) {
+					float3 vel = dt*ball.Speed * ball.Dir;
+					pos += vel;
+
+					float3 p;
+					float3 n;
+					if( checkColli( prePos, pos, out p, out n ) ) {
 						// hit.
 						ball.Status = StShot;
+						ball.Dir = calcReflectVec( ball.Dir, n );
+						trans.Value = p;
 						break;
 					}
 
@@ -58,15 +64,17 @@ namespace Batting
 				case StShot:
 					var prePos2 = trans.Value;
 					var pos2 = prePos2;
-					//float spd = -400f * dt;
-					float spd2 = 400f * dt;
-					pos2.y += spd2;
+
+					float3 vel2 = dt * ball.Speed * ball.Dir;
+					pos2 += vel2;
 
 					trans.Value = pos2;
 
-					if( pos2.y > 500f ) {
+					ball.Timer += dt;
+					if( ball.Timer > 3f ) {
 						ball.Status = StEnd;
 						scl.Value.x = 0;
+						ball.Timer = 0;
 					}
 					break;
 				case StEnd:
@@ -80,8 +88,14 @@ namespace Batting
 			} );
 		}
 
+		float3 calcReflectVec( float3 inVec, float3 norm )
+		{
+			float dot = math.dot( inVec, norm );
+			float3 vec = inVec - 2f * dot * norm;
+			return math.normalize( vec );
+		}
 
-		bool checkColli( float3 stPos, float3 edPos )
+		bool checkColli( float3 stPos, float3 edPos, out float3 intersectPos, out float3 normVec )
 		{
 			bool isSwing = false;
 			float3 batPos = float3.zero;
@@ -99,6 +113,9 @@ namespace Batting
 					}
 				}
 			} );
+
+			intersectPos = stPos;
+			normVec = float3.zero;
 
 			if( !isSwing )
 				return false;
@@ -123,50 +140,59 @@ namespace Batting
 			float x1 = math.cos( zrad );
 			float y1 = math.sin( zrad );
 			float3 e1 = new float3( x1, y1, 0 );
-
 			// バットの先.
 			float3 point1 = batPos + e1 * length;
 
+			float x2 = math.cos( pre_zrad );
+			float y2 = math.sin( pre_zrad );
+			float3 e2 = new float3( x2, y2, 0 );
+			// バットの先.
+			float3 point2 = batPos + e2 * length;
+
+			// 法線.
 			float3 norm1 = crossVec( e1, zv );
-
+			// それぞれ内積とる.
 			float dotS1 = math.dot( dvS, norm1 );
-
 			float dotE1 = math.dot( dvE, norm1 );
-
-			if( dotS1 > 0 && dotE1 > 0 ) {
-				//Debug.LogAlways( "now oku" );
-
-				float x2 = math.cos( pre_zrad );
-				float y2 = math.sin( pre_zrad );
-				float3 e2 = new float3( x2, y2, 0 );
-
-				// バットの先.
-				float3 point2 = batPos + e2 * length;
-
+			// 範囲比較.
+			if( dotS1 >= 0 && dotE1 >= 0 ) {
+				// 法線.
 				float3 norm2 = crossVec( e2, zv );
-
+				// それぞれ内積とる.
 				float dotS2 = math.dot( dvS, norm2 );
 				float dotE2 = math.dot( dvE, norm2 );
-
-				if( dotS2 < 0 && dotE2 < 0 ) {
+				// 範囲比較.
+				if( dotS2 <= 0 && dotE2 <= 0 ) {
 					Debug.LogAlways( "hit inside" );
+					// 法線計算し直し.
+					float3 normS = crossVec( dvS, zv );
+					normVec = math.normalize( normS );
+					return true;
 				}
+			}
+
+			bool res = isIntersect( stPos, edPos, batPos, point1, out intersectPos );
+			if( res ) {
+				Debug.LogFormatAlways( "hit1 {0} {1}", intersectPos.x, intersectPos.y );
+				normVec = norm1;
 				return true;
 			}
 
-			float3 p;
-			bool res = isIntersect( stPos, edPos, batPos, point1, out p );
-			if( res ) {
-				Debug.LogFormatAlways( "hit {0} {1}", p.x, p.y );
+			bool res2 = isIntersect( stPos, edPos, batPos, point2, out intersectPos );
+			if( res2 ) {
+				Debug.LogFormatAlways( "hit2 {0} {1}", intersectPos.x, intersectPos.y );
+				normVec = norm1;
 				return true;
 			}
 
 			return false;
 		}
 
+
+		// 参考: https://qiita.com/Nunocky/items/55db409d90ebe0aac280
 		bool isIntersect( float3 st1, float3 ed1, float3 st2, float3 ed2, out float3 p )
 		{
-			p = float3.zero;
+			p = st1;
 
 			float2 v1 = new float2( st1.x - st2.x, st1.y - st2.y );
 			float2 vA = new float2( ed1.x - st1.x, ed1.y - st1.y );
@@ -175,7 +201,8 @@ namespace Batting
 			// 外積.
 			float cross = vA.x * vB.y - vA.y * vB.x;
 
-			if( math.abs( cross ) < 0.0001f ) {
+			// 外積=0(平行)なら交差しない.
+			if( math.abs( cross ) < 0.00001f ) {
 				return false;
 			}
 

@@ -847,7 +847,8 @@
             },
             "blending": 0
         }, {
-            "$type": "Batting.BallInfo, batting"
+            "$type": "Batting.BallInfo, batting",
+            "Dir": {}
         }, {
             "$type": "Unity.Authoring.Core.SiblingIndex, Unity.Authoring.Core",
             "Index": 4
@@ -918,6 +919,8 @@
                 "StableTypeHash": 13253616490965883023
             }, {
                 "StableTypeHash": 3734347792998405706
+            }, {
+                "StableTypeHash": 9621950647191302806
             }]
         }]
     }, {
@@ -1727,7 +1730,6 @@
             "$type": "Unity.Tiny.Core2D.Parent, Unity.Tiny.Core2D"
         }, {
             "$type": "Unity.Tiny.Core2D.Sprite2DRenderer, Unity.Tiny.Sprite2D",
-            "sprite": "8315a474c094a91272174de35c58d2d5",
             "color": {
                 "g": 0.0817042,
                 "b": 0.2358491,

@@ -1,4 +1,5 @@
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace Batting
 {
@@ -7,5 +8,7 @@ namespace Batting
 		public bool Initialized;
 		public int Status;
 		public float Timer;
+		public float3 Dir;
+		public float Speed;
 	}
 }
