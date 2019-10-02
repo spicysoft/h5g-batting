@@ -10,7 +10,8 @@ namespace Batting
 	{
 		public const int StPrepare = 0;
 		public const int StMove = 1;
-		public const int StEnd = 2;
+		public const int StShot = 2;
+		public const int StEnd = 3;
 
 		protected override void OnUpdate()
 		{
@@ -38,15 +39,32 @@ namespace Batting
 					var prePos = trans.Value;
 					var pos = prePos;
 					//float spd = -400f * dt;
-					float spd = -600f * dt;
+					float spd = -400f * dt;
 					pos.y += spd;
 
-					checkColli( prePos, pos );
-
+					if( checkColli( prePos, pos ) ) {
+						// hit.
+						ball.Status = StShot;
+						break;
+					}
 
 					trans.Value = pos;
 
-					if( pos.y < -400f ) {
+					if( pos.y < -500f ) {
+						ball.Status = StEnd;
+						scl.Value.x = 0;
+					}
+					break;
+				case StShot:
+					var prePos2 = trans.Value;
+					var pos2 = prePos2;
+					//float spd = -400f * dt;
+					float spd2 = 400f * dt;
+					pos2.y += spd2;
+
+					trans.Value = pos2;
+
+					if( pos2.y > 500f ) {
 						ball.Status = StEnd;
 						scl.Value.x = 0;
 					}
@@ -72,60 +90,76 @@ namespace Batting
 			quaternion batRot = quaternion.identity;
 			Entities.ForEach( ( Entity entity, ref BatInfo bat, ref Translation trans, ref Rotation rot ) => {
 				if( bat.Status == BatSystem.StSwing ) {
-					isSwing = true;
-					batPos = trans.Value;
-					batRot = rot.Value;
-					zrad = bat.Zrad;
-					pre_zrad = bat.PreZrad;
+					if( bat.Zrad > math.radians( 280f ) && bat.Zrad < math.radians( 440f ) ) {
+						isSwing = true;
+						batPos = trans.Value;
+						batRot = rot.Value;
+						zrad = bat.Zrad;
+						pre_zrad = bat.PreZrad;
+					}
 				}
 			} );
 
 			if( !isSwing )
 				return false;
 
+			// 先ず距離でチェック.
+			float3 dvS = stPos - batPos;	// ボールの現在地 - バット中心.
+			float3 dvE = edPos - batPos;    // ボールの次の位置 - バット中心.
+			float lenSqS = math.lengthsq( dvS );
+			float lenSqE = math.lengthsq( dvE );
+
 			float length = 120f;
-			float3 zv = new float3( 0, 0, -1f );
+			float lengthSq = length * length;
+
+			if( lenSqS > lengthSq && lenSqE > lengthSq ) {
+				// 2点とも範囲外.
+				return false;
+			}
+
+
+			float3 zv = new float3( 0, 0, 1f );
 
 			float x1 = math.cos( zrad );
 			float y1 = math.sin( zrad );
 			float3 e1 = new float3( x1, y1, 0 );
 
+			// バットの先.
 			float3 point1 = batPos + e1 * length;
 
 			float3 norm1 = crossVec( e1, zv );
 
-			float3 dv1 = stPos - batPos;
-			float dot1 = math.dot( dv1, norm1 );
+			float dotS1 = math.dot( dvS, norm1 );
 
-			float3 dv2 = edPos - batPos;
-			float dot2 = math.dot( dv2, norm1 );
+			float dotE1 = math.dot( dvE, norm1 );
 
-			if( dot1 < 0 && dot2 < 0 ) {
-				Debug.LogAlways("temae");
+			if( dotS1 > 0 && dotE1 > 0 ) {
+				//Debug.LogAlways( "now oku" );
+
+				float x2 = math.cos( pre_zrad );
+				float y2 = math.sin( pre_zrad );
+				float3 e2 = new float3( x2, y2, 0 );
+
+				// バットの先.
+				float3 point2 = batPos + e2 * length;
+
+				float3 norm2 = crossVec( e2, zv );
+
+				float dotS2 = math.dot( dvS, norm2 );
+				float dotE2 = math.dot( dvE, norm2 );
+
+				if( dotS2 < 0 && dotE2 < 0 ) {
+					Debug.LogAlways( "hit inside" );
+				}
+				return true;
 			}
-
-
 
 			float3 p;
 			bool res = isIntersect( stPos, edPos, batPos, point1, out p );
 			if( res ) {
-				Debug.LogFormatAlways( "0 {0} {1}", p.x, p.y );
+				Debug.LogFormatAlways( "hit {0} {1}", p.x, p.y );
 				return true;
 			}
-			/*
-			x = math.cos( pre_zrad );
-			y = math.sin( pre_zrad );
-
-			dv = new float3( x * length, y * length, 0 );
-			point = batPos + dv;
-
-
-			res = isIntersect( stPos, edPos, batPos, point1, out p );
-			if( res ) {
-				Debug.LogFormatAlways( "1 {0} {1}", p.x, p.y );
-				return true;
-			}
-			*/
 
 			return false;
 		}

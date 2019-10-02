@@ -47,8 +47,8 @@ namespace Batting
 					quaternion rot = rotation.Value;
 					float za = bat.Zrad;
 					bat.PreZrad = za;
-					//float aspd = math.radians( 1200f ) * dt;
-					float aspd = math.radians( 800f ) * dt;
+					float aspd = math.radians( 1000f ) * dt;
+					//float aspd = math.radians( 800f ) * dt;
 					za += aspd;
 					bat.Zrad = za;
 					rotation.Value = quaternion.RotateZ( za );

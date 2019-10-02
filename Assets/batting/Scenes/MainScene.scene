@@ -1147,69 +1147,6 @@
         "Components": [{
             "$type": "Unity.Tiny.Core2D.Parent, Unity.Tiny.Core2D"
         }, {
-            "$type": "Unity.Authoring.Core.SiblingIndex, Unity.Authoring.Core",
-            "Index": 10
-        }, {
-            "$type": "Unity.Entities.EntityGuid, Unity.Entities",
-            "a": 8044319075532685921,
-            "b": 9549391711306820273
-        }, {
-            "$type": "Unity.Tiny.Core2D.Translation, Unity.Tiny.Core2D",
-            "Value": {
-                "x": -90,
-                "y": -318
-            }
-        }, {
-            "$type": "Unity.Tiny.Core2D.Rotation, Unity.Tiny.Core2D",
-            "Value": {
-                "value": {
-                    "w": 1
-                }
-            }
-        }, {
-            "$type": "Unity.Tiny.Core2D.NonUniformScale, Unity.Tiny.Core2D",
-            "Value": {
-                "x": 1,
-                "y": 1,
-                "z": 1
-            }
-        }, {
-            "$type": "Unity.Tiny.Core.EntityName, Unity.Tiny.Core",
-            "Elements": [{
-                "c": "E"
-            }, {
-                "c": "n"
-            }, {
-                "c": "t"
-            }, {
-                "c": "i"
-            }, {
-                "c": "t"
-            }, {
-                "c": "y"
-            }]
-        }, {
-            "$type": "Unity.Authoring.Core.ComponentOrder, Unity.Authoring.Core",
-            "Elements": [{
-                "StableTypeHash": 7960064150805274675
-            }, {
-                "StableTypeHash": 793987765392955020
-            }, {
-                "StableTypeHash": 12662904853204722592
-            }, {
-                "StableTypeHash": 266869500686333426
-            }, {
-                "StableTypeHash": 9104342357061045742
-            }, {
-                "StableTypeHash": 17378348762221180850
-            }, {
-                "StableTypeHash": 874803706151837934
-            }]
-        }]
-    }, {
-        "Components": [{
-            "$type": "Unity.Tiny.Core2D.Parent, Unity.Tiny.Core2D"
-        }, {
             "$type": "Batting.BatInfo, batting"
         }, {
             "$type": "Unity.Authoring.Core.SiblingIndex, Unity.Authoring.Core",
