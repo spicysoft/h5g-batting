@@ -7,7 +7,6 @@ namespace Batting
 	{
 		public SceneReference TitleScn;
 		public SceneReference MainScn;
-		public SceneReference GameOverScn;
 		public SceneReference ResultScn;
 	}
 }

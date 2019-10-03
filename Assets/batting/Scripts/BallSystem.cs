@@ -3,6 +3,8 @@ using Unity.Mathematics;
 using Unity.Tiny.Core;
 using Unity.Tiny.Core2D;
 using Unity.Tiny.Debugging;
+using Unity.Tiny.Scenes;
+using Unity.Tiny.Text;
 
 namespace Batting
 {
@@ -12,18 +14,44 @@ namespace Batting
 		public const int StMove = 1;
 		public const int StShot = 2;
 		public const int StEnd = 3;
+		public const int StPause = 4;
+		Random _random;
+
+		protected override void OnCreate()
+		{
+			_random = new Random();
+		}
 
 		protected override void OnUpdate()
 		{
+			bool reqResult = false;
+			int ballCnt = -1;
+
+
 			Entities.ForEach( ( Entity entity, ref BallInfo ball, ref Translation trans, ref NonUniformScale scl ) => {
+				if( !ball.SeedInitialized ) {
+					// 乱数シードセット 1回だけ.
+					ball.SeedInitialized = true;
+					int seed = World.TinyEnvironment().frameNum;
+					Debug.LogFormatAlways( "seed {0}", seed );
+					_random.InitState( (uint)seed );
+				}
+
 				if( !ball.Initialized ) {
 					ball.Initialized = true;
 					ball.Status = StPrepare;
 					ball.Timer = 0;
-					trans.Value = new float3( 0, 100f, 0 );
 					scl.Value = new float3( 1f, 1f, 1f );
+					ball.Speed = _random.NextFloat( 300f, 900f );
 					ball.Dir = new float3( 0, -1f, 0 );
-					ball.Speed = 600f;
+					// ボール軌道.
+					float3 stPos = new float3( _random.NextFloat( -10f, 30f ), 100f, 0 );
+					float3 edPos = new float3( _random.NextFloat( -20f, 40f ), -300f, 0 );
+					float3 dvec = edPos - stPos;
+					trans.Value = stPos;
+					ball.Dir = math.normalize( dvec );
+
+					++ball.Count;
 					return;
 				}
 
@@ -46,11 +74,15 @@ namespace Batting
 
 					float3 p;
 					float3 n;
-					if( checkColli( prePos, pos, out p, out n ) ) {
+					float refRate;
+					bool result = checkColli( prePos, pos, out p, out n, out refRate );
+					if( result ) {
 						// hit.
 						ball.Status = StShot;
+						ball.Timer = 0;
 						ball.Dir = calcReflectVec( ball.Dir, n );
 						trans.Value = p;
+						ball.Speed *= refRate;
 						break;
 					}
 
@@ -58,6 +90,7 @@ namespace Batting
 
 					if( pos.y < -500f ) {
 						ball.Status = StEnd;
+						ball.Timer = 0;
 						scl.Value.x = 0;
 					}
 					break;
@@ -71,7 +104,7 @@ namespace Batting
 					trans.Value = pos2;
 
 					ball.Timer += dt;
-					if( ball.Timer > 3f ) {
+					if( ball.Timer > 2.5f ) {
 						ball.Status = StEnd;
 						scl.Value.x = 0;
 						ball.Timer = 0;
@@ -80,11 +113,41 @@ namespace Batting
 				case StEnd:
 					ball.Timer += dt;
 					if( ball.Timer > 1f ) {
-						ball.Initialized = false;
+						if( ball.Count >= 2 ) {
+							// todo リザルト.
+							//ball.Initialized = false;
+							// 仮.
+							//ball.Count = 0;
+							ball.Status = StPause;
+							reqResult = true;
+						}
+						else {
+							ball.Initialized = false;
+						}
+						ballCnt = ball.Count + 1;
 					}
 					break;
 				}
 
+			} );
+
+			if( ballCnt != -1 ) {
+				dispBallCount( ballCnt );
+			}
+
+			if( reqResult ) {
+				// リザルト表示.
+				SceneReference resultScn = World.TinyEnvironment().GetConfigData<GameConfig>().ResultScn;
+				SceneService.LoadSceneAsync( resultScn );
+			}
+		}
+
+		// ボールカウント表示.
+		void dispBallCount( int cnt )
+		{
+			Entities.WithAll<TextBallCntTag>().ForEach( ( Entity entity ) => {
+				string str = cnt.ToString() + "/10";
+				EntityManager.SetBufferFromString<TextString>( entity, str );
 			} );
 		}
 
@@ -95,7 +158,7 @@ namespace Batting
 			return math.normalize( vec );
 		}
 
-		bool checkColli( float3 stPos, float3 edPos, out float3 intersectPos, out float3 normVec )
+		bool checkColli( float3 stPos, float3 edPos, out float3 intersectPos, out float3 normVec, out float refRate )
 		{
 			bool isSwing = false;
 			float3 batPos = float3.zero;
@@ -116,6 +179,7 @@ namespace Batting
 
 			intersectPos = stPos;
 			normVec = float3.zero;
+			refRate = 1f;
 
 			if( !isSwing )
 				return false;
@@ -134,6 +198,10 @@ namespace Batting
 				return false;
 			}
 
+			// クリティカルヒット判定.
+			if( zrad > math.radians( 330f ) && zrad < math.radians( 390f ) ) {
+				refRate = 1.2f;
+			}
 
 			float3 zv = new float3( 0, 0, 1f );
 
@@ -167,21 +235,26 @@ namespace Batting
 					// 法線計算し直し.
 					float3 normS = crossVec( dvS, zv );
 					normVec = math.normalize( normS );
+					refRate *= 1.5f;
 					return true;
 				}
 			}
 
+			// バット手前.
 			bool res = isIntersect( stPos, edPos, batPos, point1, out intersectPos );
 			if( res ) {
 				Debug.LogFormatAlways( "hit1 {0} {1}", intersectPos.x, intersectPos.y );
 				normVec = norm1;
+				refRate *= 2f;
 				return true;
 			}
 
+			// バット後方.
 			bool res2 = isIntersect( stPos, edPos, batPos, point2, out intersectPos );
 			if( res2 ) {
 				Debug.LogFormatAlways( "hit2 {0} {1}", intersectPos.x, intersectPos.y );
 				normVec = norm1;
+				refRate *= 1.5f;
 				return true;
 			}
 

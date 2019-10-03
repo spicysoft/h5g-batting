@@ -12,11 +12,8 @@
             "MainScn": {
                 "SceneGuid": "31cca1c9e24b4bd7adecbb12b71bc184"
             },
-            "GameOverScn": {
-                "SceneGuid": "00000000000000000000000000000000"
-            },
             "ResultScn": {
-                "SceneGuid": "00000000000000000000000000000000"
+                "SceneGuid": "3dfac4a1b0ab4afa9a2cd64041662ed7"
             }
         }, {
             "$type": "Unity.Entities.EntityGuid, Unity.Entities",
@@ -39,6 +36,10 @@
                 "SceneReference": {
                     "SceneGuid": "ba26c15d922c431fadc23d0182349f12"
                 }
+            }, {
+                "SceneReference": {
+                    "SceneGuid": "3dfac4a1b0ab4afa9a2cd64041662ed7"
+                }
             }]
         }, {
             "$type": "Unity.Tiny.Scenes.StartupScenes, Unity.Tiny.Scenes",
@@ -55,6 +56,8 @@
                 "StableTypeHash": 12662904853204722592
             }, {
                 "StableTypeHash": 6610784938584536859
+            }, {
+                "StableTypeHash": 3782355457995895291
             }]
         }, {
             "$type": "Unity.Authoring.Core.ConfigurationTag, Unity.Authoring.Core"
