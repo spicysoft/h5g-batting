@@ -8,5 +8,6 @@ namespace Batting
 		public SceneReference TitleScn;
 		public SceneReference MainScn;
 		public SceneReference ResultScn;
+		public SceneReference TargetScn;
 	}
 }

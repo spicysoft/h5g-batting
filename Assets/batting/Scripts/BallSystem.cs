@@ -11,7 +11,7 @@ namespace Batting
 	public class BallSystem : ComponentSystem
 	{
 		public const int StPrepare = 0;
-		public const int StMove = 1;
+		public const int StThrow = 1;
 		public const int StShot = 2;
 		public const int StEnd = 3;
 		public const int StPause = 4;
@@ -45,7 +45,7 @@ namespace Batting
 					ball.Speed = _random.NextFloat( 300f, 900f );
 					ball.Dir = new float3( 0, -1f, 0 );
 					// ボール軌道.
-					float3 stPos = new float3( _random.NextFloat( -10f, 30f ), 100f, 0 );
+					float3 stPos = new float3( _random.NextFloat( -20f, 40f ), 100f, 0 );
 					float3 edPos = new float3( _random.NextFloat( -20f, 40f ), -300f, 0 );
 					float3 dvec = edPos - stPos;
 					trans.Value = stPos;
@@ -61,11 +61,11 @@ namespace Batting
 				case StPrepare:
 					ball.Timer += dt;
 					if( ball.Timer > 1.0f ) {
-						ball.Status = StMove;
+						ball.Status = StThrow;
 						ball.Timer = 0;
 					}
 					break;
-				case StMove:
+				case StThrow:
 					var prePos = trans.Value;
 					var pos = prePos;
 
@@ -75,7 +75,7 @@ namespace Batting
 					float3 p;
 					float3 n;
 					float refRate;
-					bool result = checkColli( prePos, pos, out p, out n, out refRate );
+					bool result = checkColliBat( prePos, pos, out p, out n, out refRate );
 					if( result ) {
 						// hit.
 						ball.Status = StShot;
@@ -101,6 +101,10 @@ namespace Batting
 					float3 vel2 = dt * ball.Speed * ball.Dir;
 					pos2 += vel2;
 
+					float3 refv;
+					checkTarget( prePos2, pos2, out refv );
+
+
 					trans.Value = pos2;
 
 					ball.Timer += dt;
@@ -113,7 +117,7 @@ namespace Batting
 				case StEnd:
 					ball.Timer += dt;
 					if( ball.Timer > 1f ) {
-						if( ball.Count >= 2 ) {
+						if( ball.Count >= 10 ) {
 							// todo リザルト.
 							//ball.Initialized = false;
 							// 仮.
@@ -158,7 +162,7 @@ namespace Batting
 			return math.normalize( vec );
 		}
 
-		bool checkColli( float3 stPos, float3 edPos, out float3 intersectPos, out float3 normVec, out float refRate )
+		bool checkColliBat( float3 stPos, float3 edPos, out float3 intersectPos, out float3 normVec, out float refRate )
 		{
 			bool isSwing = false;
 			float3 batPos = float3.zero;
@@ -179,7 +183,7 @@ namespace Batting
 
 			intersectPos = stPos;
 			normVec = float3.zero;
-			refRate = 1f;
+			refRate = 1.5f;
 
 			if( !isSwing )
 				return false;
@@ -292,10 +296,80 @@ namespace Batting
 
 		float3 crossVec( float3 a, float3 b )
 		{
+			return math.cross( a, b );
+			/*
 			float x = a.y * b.z - a.z * b.y;
 			float y = a.z * b.x - a.x * b.z;
 			float z = a.x * b.y - a.y * b.x;
-			return new float3( x, y, z );
+			return new float3( x, y, z );*/
 		}
+
+		// 外積.
+		float cross2d( float2 v1, float2 v2 )
+		{
+			return v1.x * v2.y - v1.y * v2.x;
+		}
+
+		// 内積.
+		float inner2d( float2 v1, float2 v2 )
+		{
+			return v1.x * v2.x + v1.y * v2.y;
+		}
+
+
+		bool checkTarget( float3 vSt, float3 vEd, out float3 refvec )
+		{
+			refvec = float3.zero;
+
+			Entities.ForEach( ( Entity entity, ref TargetInfo tar, ref Translation trans ) => {
+				if( !tar.IsActive )
+					return;
+				if( tar.Status != TargetSystem.StNorm )
+					return;
+
+				var center = trans.Value;
+				var r = tar.Radius + 10f;		// ボールの半径足す.
+				if( checkColliTarget( vSt, vEd, center, r ) ) {
+					Debug.LogAlways( "Tar Hit" );
+					tar.Status = TargetSystem.StHit;
+				}
+			} );
+
+			return false;
+		}
+
+		bool checkColliTarget( float3 vSt, float3 vEd, float3 center, float r )
+		{
+			// A:線分の始点、B:線分の終点、P:円の中心、X:PからABに下ろした垂線との交点.
+			float2 vAB = new float2( vEd.x - vSt.x, vEd.y - vSt.y );
+			float2 vAP = new float2( center.x - vSt.x, center.y - vSt.y );
+			float2 vBP = new float2( center.x - vEd.x, center.y - vEd.y );
+
+			float2 vABnorm = math.normalize( vAB );
+			// AXの距離.
+			float lenAX = inner2d( vAP, vABnorm );
+
+			// 線分ABとPの最短距離
+			float shortestDistance;
+			if( lenAX < 0 ) {
+				// AXが負なら APが円の中心までの最短距離
+				shortestDistance = math.length( vAP );
+			}
+			else if( lenAX > math.length( vAB ) ) {
+				// AXがABよりも長い場合は、BPが円の中心までの最短距離
+				shortestDistance = math.length( vBP );
+			}
+			else {
+				// XがAB上にあるので、AXが最短距離
+				// 単位ベクトルABとベクトルAPの外積で求める
+				shortestDistance = math.abs( cross2d( vAP, vABnorm ) );
+			}
+			
+			if( shortestDistance <= r ) {
+				return true;
+			}
+			return false;
+		}
+
 	}
 }

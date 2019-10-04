@@ -14,6 +14,9 @@
             },
             "ResultScn": {
                 "SceneGuid": "3dfac4a1b0ab4afa9a2cd64041662ed7"
+            },
+            "TargetScn": {
+                "SceneGuid": "6063cf27c23149ac86d90ff9cda3f3f3"
             }
         }, {
             "$type": "Unity.Entities.EntityGuid, Unity.Entities",
@@ -39,6 +42,10 @@
             }, {
                 "SceneReference": {
                     "SceneGuid": "3dfac4a1b0ab4afa9a2cd64041662ed7"
+                }
+            }, {
+                "SceneReference": {
+                    "SceneGuid": "6063cf27c23149ac86d90ff9cda3f3f3"
                 }
             }]
         }, {
