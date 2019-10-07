@@ -21,8 +21,21 @@ namespace Batting
 				var env = World.TinyEnvironment();
 				SceneService.UnloadAllSceneInstances( env.GetConfigData<GameConfig>().ResultScn );
 
-			}
+				// 初期化.
+				Entities.ForEach( ( ref BallInfo ball ) => {
+					ball.Count = 0;
+					ball.Initialized = false;
+				} );
 
+				Entities.ForEach( ( ref BatInfo bat ) => {
+					bat.Initialized = false;
+				} );
+
+				Entities.ForEach( ( ref TargetGenInfo gen ) => {
+					gen.Initialized = false;
+				} );
+
+			}
 		}
 	}
 }

@@ -9,6 +9,6 @@ namespace Batting
 		public int Status;
 		public float Timer;
 		public float Radius;
-		public float Level;
+		public int Level;
 	}
 }

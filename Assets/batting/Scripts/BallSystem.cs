@@ -42,11 +42,13 @@ namespace Batting
 					ball.Status = StPrepare;
 					ball.Timer = 0;
 					scl.Value = new float3( 1f, 1f, 1f );
-					ball.Speed = _random.NextFloat( 300f, 900f );
-					ball.Dir = new float3( 0, -1f, 0 );
+					ball.Speed = 500f;// _random.NextFloat( 300f, 900f );
+
 					// ボール軌道.
-					float3 stPos = new float3( _random.NextFloat( -20f, 40f ), 100f, 0 );
-					float3 edPos = new float3( _random.NextFloat( -20f, 40f ), -300f, 0 );
+					//float3 stPos = new float3( _random.NextFloat( -20f, 40f ), 100f, 0 );
+					//float3 edPos = new float3( _random.NextFloat( -20f, 40f ), -300f, 0 );
+					float3 stPos = new float3( 0, 100f, 0 );
+					float3 edPos = new float3( 0, -300f, 0 );
 					float3 dvec = edPos - stPos;
 					trans.Value = stPos;
 					ball.Dir = math.normalize( dvec );
@@ -102,8 +104,16 @@ namespace Batting
 					pos2 += vel2;
 
 					float3 refv;
-					checkTarget( prePos2, pos2, out refv );
-
+					if( checkTarget( prePos2, pos2, ball.Dir, out refv ) ) {
+						//ball.Status = StShot;
+						//ball.Timer = 0;
+						//ball.Dir = calcReflectVec( ball.Dir, n );
+						//trans.Value = p;
+						ball.Speed *= 0.9f;
+						ball.Dir = refv;
+						//ball.Dir *= -1f;
+						break;
+					}
 
 					trans.Value = pos2;
 
@@ -121,7 +131,7 @@ namespace Batting
 							// todo リザルト.
 							//ball.Initialized = false;
 							// 仮.
-							//ball.Count = 0;
+							ball.Count = 0;
 							ball.Status = StPause;
 							reqResult = true;
 						}
@@ -155,6 +165,7 @@ namespace Batting
 			} );
 		}
 
+		// 反射ベクトル.
 		float3 calcReflectVec( float3 inVec, float3 norm )
 		{
 			float dot = math.dot( inVec, norm );
@@ -235,7 +246,7 @@ namespace Batting
 				float dotE2 = math.dot( dvE, norm2 );
 				// 範囲比較.
 				if( dotS2 <= 0 && dotE2 <= 0 ) {
-					Debug.LogAlways( "hit inside" );
+					//Debug.LogAlways( "hit inside" );
 					// 法線計算し直し.
 					float3 normS = crossVec( dvS, zv );
 					normVec = math.normalize( normS );
@@ -247,7 +258,7 @@ namespace Batting
 			// バット手前.
 			bool res = isIntersect( stPos, edPos, batPos, point1, out intersectPos );
 			if( res ) {
-				Debug.LogFormatAlways( "hit1 {0} {1}", intersectPos.x, intersectPos.y );
+				//Debug.LogFormatAlways( "hit1 {0} {1}", intersectPos.x, intersectPos.y );
 				normVec = norm1;
 				refRate *= 2f;
 				return true;
@@ -256,7 +267,7 @@ namespace Batting
 			// バット後方.
 			bool res2 = isIntersect( stPos, edPos, batPos, point2, out intersectPos );
 			if( res2 ) {
-				Debug.LogFormatAlways( "hit2 {0} {1}", intersectPos.x, intersectPos.y );
+				//Debug.LogFormatAlways( "hit2 {0} {1}", intersectPos.x, intersectPos.y );
 				normVec = norm1;
 				refRate *= 1.5f;
 				return true;
@@ -316,29 +327,44 @@ namespace Batting
 			return v1.x * v2.x + v1.y * v2.y;
 		}
 
-
-		bool checkTarget( float3 vSt, float3 vEd, out float3 refvec )
+		// 的との当たりチェック.
+		bool checkTarget( float3 vSt, float3 vEd, float3 dir, out float3 refvec )
 		{
-			refvec = float3.zero;
-
+			bool isHit = false;
+			float3 norm = float3.zero;
 			Entities.ForEach( ( Entity entity, ref TargetInfo tar, ref Translation trans ) => {
+				//if( isHit )
+				//	return;
 				if( !tar.IsActive )
 					return;
 				if( tar.Status != TargetSystem.StNorm )
 					return;
 
 				var center = trans.Value;
-				var r = tar.Radius + 10f;		// ボールの半径足す.
-				if( checkColliTarget( vSt, vEd, center, r ) ) {
-					Debug.LogAlways( "Tar Hit" );
+				var r = tar.Radius + 10f;       // ボールの半径足す.
+				float3 vnorm;
+				if( checkColliTarget( vSt, vEd, center, r, out vnorm ) ) {
+					//Debug.LogAlways( "Tar Hit" );
 					tar.Status = TargetSystem.StHit;
+					isHit = true;
+					norm = vnorm;
 				}
 			} );
 
-			return false;
+			if( isHit ) {
+				refvec = calcReflectVec( dir, norm );
+				//Debug.LogFormatAlways( "norm2 {0} {1}", norm.x, norm.y );
+				//Debug.LogFormatAlways( "ref {0} {1}", refvec.x, refvec.y );
+			}
+			else {
+				refvec = float3.zero;
+			}
+
+			return isHit;
 		}
 
-		bool checkColliTarget( float3 vSt, float3 vEd, float3 center, float r )
+		// 的との当たり判定.
+		bool checkColliTarget( float3 vSt, float3 vEd, float3 center, float r, out float3 norm )
 		{
 			// A:線分の始点、B:線分の終点、P:円の中心、X:PからABに下ろした垂線との交点.
 			float2 vAB = new float2( vEd.x - vSt.x, vEd.y - vSt.y );
@@ -351,24 +377,57 @@ namespace Batting
 
 			// 線分ABとPの最短距離
 			float shortestDistance;
+			int pattern = 0;
 			if( lenAX < 0 ) {
 				// AXが負なら APが円の中心までの最短距離
 				shortestDistance = math.length( vAP );
+				pattern = 1;
 			}
 			else if( lenAX > math.length( vAB ) ) {
 				// AXがABよりも長い場合は、BPが円の中心までの最短距離
 				shortestDistance = math.length( vBP );
+				pattern = 2;
 			}
 			else {
 				// XがAB上にあるので、AXが最短距離
 				// 単位ベクトルABとベクトルAPの外積で求める
 				shortestDistance = math.abs( cross2d( vAP, vABnorm ) );
+				pattern = 3;
 			}
 			
-			if( shortestDistance <= r ) {
-				return true;
+			if( shortestDistance > r ) {
+				// はずれ.
+				norm = float3.zero;
+				return false;
 			}
-			return false;
+
+			// Xの座標.
+			float2 pX = vABnorm * lenAX + new float2(vSt.x, vSt.y);
+
+			float2 pP = new float2( center.x, center.y );
+			float2 vPX = pP - pX;
+			float lenPXsp = math.lengthsq( vPX );
+
+			// 交点求める.
+			// Xから交点までの距離.
+			float dist = math.sqrt( r * r - lenPXsp );
+			float2 pQ = float2.zero;
+			if( pattern == 1 ) {
+				pQ = vABnorm * dist + pX;
+			}
+			else if( pattern == 2 ) {
+				pQ = -vABnorm * dist + pX;
+			}
+			else if( pattern == 3 ) {
+				pQ = -vABnorm * dist + pX;
+			}
+
+			// 法線計算.
+			float2 vPQ = pQ - pP;
+			float2 vPQnorm = math.normalize( vPQ );
+			norm = new float3( vPQnorm.x, vPQnorm.y, 0 );
+
+			return true;
 		}
 
 	}

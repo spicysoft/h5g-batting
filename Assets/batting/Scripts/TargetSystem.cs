@@ -9,7 +9,8 @@ namespace Batting
 	{
 		public const int StNorm = 0;
 		public const int StHit = 1;
-		public const int StEnd = 2;
+		public const int StWait = 2;
+		public const int StEnd = 3;
 
 		protected override void OnUpdate()
 		{
@@ -31,11 +32,29 @@ namespace Batting
 				}*/
 
 				if( tar.Status == StHit ) {
+					if( tar.Level == 2 ) {
+						tar.Level = 1;
+						tar.Radius = 60f;
+						opt.size.x = tar.Radius * 2f;
+						opt.size.y = tar.Radius * 2f;
+					}
+					else if( tar.Level == 1 ) {
+						tar.Level = 0;
+					}
+					tar.Status = StWait;
+				}
+				else if( tar.Status == StWait ) {
 					tar.Timer += dt;
 					if( tar.Timer > 0.1f ) {
-						tar.Status = StEnd;
-						scl.Value.x = 0;
-						tar.IsActive = false;
+						if( tar.Level > 0 ) {
+							tar.Status = StNorm;
+						}
+						else {
+							tar.Status = StEnd;
+							scl.Value.x = 0;
+							tar.IsActive = false;
+						}
+						tar.Timer = 0;
 					}
 				}
 

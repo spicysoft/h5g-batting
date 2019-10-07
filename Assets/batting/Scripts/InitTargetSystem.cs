@@ -25,14 +25,15 @@ namespace Batting
 					return;
 				if( !tar.Initialized ) {
 					tar.Initialized = true;
-					opt.size.x = tar.Radius * 2f;
-					opt.size.y = tar.Radius * 2f;
 					scl.Value.x = 1f;
 					tar.Status = TargetSystem.StNorm;
 					tar.Timer = 0;
-					tar.Level = 1;  //
+					tar.Level = 2;
+					tar.Radius = 90f;
+					opt.size.x = tar.Radius * 2f;
+					opt.size.y = tar.Radius * 2f;
 
-					int colm = 5;
+					int colm = 6;
 					float ix = genCnt % colm;
 					float x = -200f*(colm-1)*0.5f + 200f * ix;
 					float y = 240f * ( genCnt / colm );

@@ -31,7 +31,7 @@ namespace Batting
 
 				var env = World.TinyEnvironment();
 				SceneReference tarBase = env.GetConfigData<GameConfig>().TargetScn;
-				for( int i = 0; i < 10-recycled; i++ )
+				for( int i = 0; i < 12-recycled; i++ )
 					SceneService.LoadSceneAsync( tarBase );
 			}
 		}
