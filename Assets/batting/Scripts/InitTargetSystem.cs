@@ -29,7 +29,7 @@ namespace Batting
 					tar.Status = TargetSystem.StNorm;
 					tar.Timer = 0;
 					tar.Level = 2;
-					tar.Radius = 90f;
+					tar.Radius = 85f;
 					opt.size.x = tar.Radius * 2f;
 					opt.size.y = tar.Radius * 2f;
 
@@ -44,7 +44,7 @@ namespace Batting
 					pos.y += y + ofsy;
 					trans.Value = pos;
 
-					Debug.LogFormatAlways("x {0} {1} {2}", genCnt, pos.x, pos.y);
+					//Debug.LogFormatAlways("x {0} {1} {2}", genCnt, pos.x, pos.y);
 
 					++genCnt;
 					return;

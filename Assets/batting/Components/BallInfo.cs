@@ -12,5 +12,6 @@ namespace Batting
 		public float3 Dir;
 		public float Speed;
 		public int Count;
+		public float3 HitPos;
 	}
 }

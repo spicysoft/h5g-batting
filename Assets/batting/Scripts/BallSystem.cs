@@ -26,7 +26,7 @@ namespace Batting
 		{
 			bool reqResult = false;
 			int ballCnt = -1;
-
+			bool reqHitEff = false;
 
 			Entities.ForEach( ( Entity entity, ref BallInfo ball, ref Translation trans, ref NonUniformScale scl ) => {
 				if( !ball.SeedInitialized ) {
@@ -84,7 +84,11 @@ namespace Batting
 						ball.Timer = 0;
 						ball.Dir = calcReflectVec( ball.Dir, n );
 						trans.Value = p;
+						ball.HitPos = p;
+						Debug.LogFormatAlways("hitpos {0} {1}", ball.HitPos.x, ball.HitPos.y);
 						ball.Speed *= refRate;
+						// hit effect.
+						reqHitEff = true;
 						break;
 					}
 
@@ -105,13 +109,8 @@ namespace Batting
 
 					float3 refv;
 					if( checkTarget( prePos2, pos2, ball.Dir, out refv ) ) {
-						//ball.Status = StShot;
-						//ball.Timer = 0;
-						//ball.Dir = calcReflectVec( ball.Dir, n );
-						//trans.Value = p;
-						ball.Speed *= 0.9f;
-						ball.Dir = refv;
-						//ball.Dir *= -1f;
+						//ball.Speed *= 0.9f;
+						ball.Dir = refv;	// 跳ね返り.
 						break;
 					}
 
@@ -147,6 +146,14 @@ namespace Batting
 
 			if( ballCnt != -1 ) {
 				dispBallCount( ballCnt );
+			}
+
+			if( reqHitEff ) {
+				// ヒットエフェクト.
+				Entities.ForEach( ( Entity entity, ref HitEffInfo info ) => {
+					info.IsActive = true;
+					Debug.LogAlways( "eff req" );
+				} );
 			}
 
 			if( reqResult ) {
