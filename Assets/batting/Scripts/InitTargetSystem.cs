@@ -8,6 +8,10 @@ namespace Batting
 	[UpdateAfter( typeof( TargetGenSystem ) )]
 	public class InitTargetSystem : ComponentSystem
 	{
+		private const int RowMax = 6;
+		private const float Width = 200f;
+		private const float Height = 240f;
+
 		protected override void OnUpdate()
 		{
 			int genCnt = 0;
@@ -18,7 +22,7 @@ namespace Batting
 				genCnt = gen.GeneratedCnt;
 			} );
 
-			float3 org = new float3(0, 400f, 0);
+			float3 org = new float3(0, 450f, 0);
 
 			Entities.ForEach( ( Entity entity, ref TargetInfo tar, ref Translation trans, ref NonUniformScale scl, ref Sprite2DRendererOptions opt ) => {
 				if( !tar.IsActive )
@@ -29,16 +33,20 @@ namespace Batting
 					tar.Status = TargetSystem.StNorm;
 					tar.Timer = 0;
 					tar.Level = 2;
-					tar.Radius = 85f;
+					tar.Radius = TargetSystem.Radius1;
 					opt.size.x = tar.Radius * 2f;
 					opt.size.y = tar.Radius * 2f;
 
-					int colm = 6;
-					float ix = genCnt % colm;
-					float x = -200f*(colm-1)*0.5f + 200f * ix;
-					float y = 240f * ( genCnt / colm );
-					float ofsy = (float)ix - (float)(colm-1) * 0.5f;
-					ofsy = ofsy*ofsy * ( -20f );
+					int row = RowMax;
+					int ix = genCnt % row;
+					int iy = genCnt / row;
+					float x = -Width * ( row - 1 ) * 0.5f + Width * ix;
+					float y = Height * ( genCnt / row );
+					// Y方向にゆがませる.
+					float ofsy = (float)ix - (float)( row - 1 ) * 0.5f;
+					float bias = -30f / (float)(iy+1);
+					ofsy = ofsy * ofsy * bias;
+
 					float3 pos = org;
 					pos.x = x;
 					pos.y += y + ofsy;

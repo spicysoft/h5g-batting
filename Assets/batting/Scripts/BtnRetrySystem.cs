@@ -35,6 +35,10 @@ namespace Batting
 					gen.Initialized = false;
 				} );
 
+				Entities.ForEach( ( ref GameMngr mngr ) => {
+					mngr.Initialized = false;
+				} );
+
 			}
 		}
 	}

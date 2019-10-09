@@ -7,6 +7,9 @@ namespace Batting
 {
 	public class TargetSystem : ComponentSystem
 	{
+		public const float Radius1 = 80f;
+		public const float Radius2 = 60f;
+
 		public const int StNorm = 0;
 		public const int StHit = 1;
 		public const int StWait = 2;
@@ -15,7 +18,8 @@ namespace Batting
 		protected override void OnUpdate()
 		{
 			float dt = World.TinyEnvironment().frameDeltaTime;
-			
+			int score = 0;
+
 			Entities.ForEach( ( Entity entity, ref TargetInfo tar, ref Translation trans, ref Rotation rot, ref NonUniformScale scl, ref Sprite2DRendererOptions opt ) => {
 				if( !tar.IsActive || !tar.Initialized )
 					return;
@@ -34,12 +38,14 @@ namespace Batting
 				if( tar.Status == StHit ) {
 					if( tar.Level == 2 ) {
 						tar.Level = 1;
-						tar.Radius = 60f;
+						tar.Radius = Radius2;
 						opt.size.x = tar.Radius * 2f;
 						opt.size.y = tar.Radius * 2f;
+						score += 100;
 					}
 					else if( tar.Level == 1 ) {
 						tar.Level = 0;
+						score += 150;
 					}
 					tar.Status = StWait;
 				}
@@ -60,6 +66,13 @@ namespace Batting
 
 			} );
 
+			// スコア更新.
+			if( score > 0 ) {
+				Entities.ForEach( ( ref GameMngr mngr ) => {
+					mngr.IsUpdatedScore = true;
+					mngr.Score += score;
+				} );
+			}
 		}
 	}
 }

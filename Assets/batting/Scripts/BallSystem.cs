@@ -42,13 +42,13 @@ namespace Batting
 					ball.Status = StPrepare;
 					ball.Timer = 0;
 					scl.Value = new float3( 1f, 1f, 1f );
-					ball.Speed = 500f;// _random.NextFloat( 300f, 900f );
+					ball.Speed = _random.NextFloat( 300f, 900f );
 
 					// ボール軌道.
-					//float3 stPos = new float3( _random.NextFloat( -20f, 40f ), 100f, 0 );
-					//float3 edPos = new float3( _random.NextFloat( -20f, 40f ), -300f, 0 );
-					float3 stPos = new float3( 0, 100f, 0 );
-					float3 edPos = new float3( 0, -300f, 0 );
+					float3 stPos = new float3( _random.NextFloat( -20f, 40f ), 100f, 0 );
+					float3 edPos = new float3( _random.NextFloat( -20f, 40f ), -300f, 0 );
+					//float3 stPos = new float3( 0, 100f, 0 );
+					//float3 edPos = new float3( 0, -300f, 0 );
 					float3 dvec = edPos - stPos;
 					trans.Value = stPos;
 					ball.Dir = math.normalize( dvec );
@@ -77,8 +77,8 @@ namespace Batting
 					float3 p;
 					float3 n;
 					float refRate;
-					bool result = checkColliBat( prePos, pos, out p, out n, out refRate );
-					if( result ) {
+					// バットとの当たりチェック.
+					if( checkColliBat( prePos, pos, out p, out n, out refRate ) ) {
 						// hit.
 						ball.Status = StShot;
 						ball.Timer = 0;
@@ -108,9 +108,10 @@ namespace Batting
 					pos2 += vel2;
 
 					float3 refv;
+					// ターゲットとの当たりチェック.
 					if( checkTarget( prePos2, pos2, ball.Dir, out refv ) ) {
 						//ball.Speed *= 0.9f;
-						ball.Dir = refv;	// 跳ね返り.
+						ball.Dir = refv;    // 跳ね返り.
 						break;
 					}
 
