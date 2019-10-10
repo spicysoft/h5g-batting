@@ -33,7 +33,7 @@ namespace Batting
 					// 乱数シードセット 1回だけ.
 					ball.SeedInitialized = true;
 					int seed = World.TinyEnvironment().frameNum;
-					Debug.LogFormatAlways( "seed {0}", seed );
+					//Debug.LogFormatAlways( "seed {0}", seed );
 					_random.InitState( (uint)seed );
 				}
 
@@ -43,6 +43,7 @@ namespace Batting
 					ball.Timer = 0;
 					scl.Value = new float3( 1f, 1f, 1f );
 					ball.Speed = _random.NextFloat( 300f, 900f );
+					//ball.Speed = 400f;
 
 					// ボール軌道.
 					float3 stPos = new float3( _random.NextFloat( -20f, 40f ), 100f, 0 );
@@ -85,8 +86,11 @@ namespace Batting
 						ball.Dir = calcReflectVec( ball.Dir, n );
 						trans.Value = p;
 						ball.HitPos = p;
-						Debug.LogFormatAlways("hitpos {0} {1}", ball.HitPos.x, ball.HitPos.y);
+						//Debug.LogFormatAlways("hitpos {0} {1}", ball.HitPos.x, ball.HitPos.y);
 						ball.Speed *= refRate;
+						if( ball.Speed < 900f )
+							ball.Speed = 900f;
+
 						// hit effect.
 						reqHitEff = true;
 						break;
