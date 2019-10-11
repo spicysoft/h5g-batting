@@ -42,7 +42,7 @@ namespace Batting
 					ball.Status = StPrepare;
 					ball.Timer = 0;
 					scl.Value = new float3( 1f, 1f, 1f );
-					ball.Speed = _random.NextFloat( 300f, 900f );
+					ball.Speed = _random.NextFloat( 400f, 900f );
 					//ball.Speed = 400f;
 
 					// ボール軌道.
